@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: nts
- * Date: 31.3.18.
- * Time: 17.03
- */
 
 namespace KgBot\Shoporama\Utils;
 
