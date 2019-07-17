@@ -27,7 +27,7 @@ class Builder
      */
     public function get($filters = [])
     {
-        $filters[] = ['limit', '=', 1500];
+        $filters[] = ['limit', '=', 100];
 
         $urlFilters = $this->parseFilters($filters);
 
@@ -96,7 +96,7 @@ class Builder
 
         $response = function ($filters, $page) {
 
-            $filters[] = ['limit', '=', 1500];
+            $filters[] = ['limit', '=', 100];
             $filters[] = ['page', '=', $page];
 
             $urlFilters = $this->parseFilters($filters);

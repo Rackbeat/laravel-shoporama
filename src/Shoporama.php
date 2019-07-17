@@ -2,6 +2,7 @@
 
 namespace KgBot\Shoporama;
 
+use KgBot\Shoporama\Builders\CategoryBuilder;
 use KgBot\Shoporama\Builders\OrderBuilder;
 use KgBot\Shoporama\Builders\ProductBuilder;
 use KgBot\Shoporama\Utils\Request;
@@ -44,6 +45,15 @@ class Shoporama
     public function orders()
     {
         return new OrderBuilder($this->request);
+    }
+
+    /**
+     * @return CategoryBuilder
+     */
+    public function categories()
+    {
+
+        return new CategoryBuilder($this->request);
     }
 
     /**
