@@ -1,6 +1,6 @@
 <?php
 
-namespace KgBot\Shoporama\;
+namespace KgBot\Shoporama;
 
 
 use Illuminate\Support\ServiceProvider;
