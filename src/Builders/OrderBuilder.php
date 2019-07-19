@@ -7,6 +7,6 @@ use KgBot\Shoporama\Models\Order;
 
 class OrderBuilder extends Builder
 {
-    protected $entity = 'orders';
+    protected $entity = 'order';
     protected $model = Order::class;
 }
