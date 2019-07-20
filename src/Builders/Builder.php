@@ -36,11 +36,11 @@ class Builder
 
             $response = $this->request->client->get("{$this->entity}{$urlFilters}");
             $responseData = json_decode((string)$response->getBody());
-            $fetchedItems = collect($responseData);
+            $fetchedItems = collect($responseData->{$entity});
             $items = collect([]);
             $count = (isset($responseData->paging)) ? $responseData->paging->count : 0;
 
-            foreach ($fetchedItems->{$entity} as $index => $item) {
+            foreach ($fetchedItems as $index => $item) {
 
 
                 /** @var Model $model */
@@ -107,18 +107,16 @@ class Builder
 
                 $response = $this->request->client->get("{$this->entity}{$urlFilters}");
                 $responseData = json_decode((string)$response->getBody());
-                $fetchedItems = collect($responseData);
+                $fetchedItems = collect($responseData->{$entity});
                 $items = collect([]);
                 $count = (isset($responseData->paging)) ? $responseData->paging->count : 0;
 
-                foreach ($fetchedItems->{$entity} as $index => $item) {
-
+                foreach ($fetchedItems as $index => $item) {
 
                     /** @var Model $model */
                     $model = new $this->model($this->request, $item);
 
                     $items->push($model);
-
 
                 }
 
