@@ -25,21 +25,22 @@ class Builder
      *
      * @return Collection|Model[]
      */
-    public function get($filters = [])
+    public function get($filters = [], $entity = null)
     {
+        $entity = $entity ?? str_plural($this->{$this->entity});
         $filters[] = ['limit', '=', 100];
 
         $urlFilters = $this->parseFilters($filters);
 
-        return $this->request->handleWithExceptions(function () use ($urlFilters) {
+        return $this->request->handleWithExceptions(function () use ($urlFilters, $entity) {
 
             $response = $this->request->client->get("{$this->entity}{$urlFilters}");
             $responseData = json_decode((string)$response->getBody());
             $fetchedItems = collect($responseData);
             $items = collect([]);
-            $pages = $responseData->pages;
+            $count = (isset($responseData->paging)) ? $responseData->paging->count : 0;
 
-            foreach ($fetchedItems->first() as $index => $item) {
+            foreach ($fetchedItems->{$entity} as $index => $item) {
 
 
                 /** @var Model $model */
@@ -88,28 +89,29 @@ class Builder
         return $urlFilters;
     }
 
-    public function all($filters = [])
+    public function all($filters = [], $entity = null)
     {
-        $page = 1;
+        $entity = $entity ?? str_plural($this->{$this->entity});
+        $offset = 0;
 
         $items = collect();
 
-        $response = function ($filters, $page) {
+        $response = function ($filters, $offset, $entity) {
 
             $filters[] = ['limit', '=', 100];
-            $filters[] = ['page', '=', $page];
+            $filters[] = ['offset', '=', $offset];
 
             $urlFilters = $this->parseFilters($filters);
 
-            return $this->request->handleWithExceptions(function () use ($urlFilters) {
+            return $this->request->handleWithExceptions(function () use ($urlFilters, $entity) {
 
                 $response = $this->request->client->get("{$this->entity}{$urlFilters}");
                 $responseData = json_decode((string)$response->getBody());
                 $fetchedItems = collect($responseData);
                 $items = collect([]);
-                $pages = $responseData->pages;
+                $count = (isset($responseData->paging)) ? $responseData->paging->count : 0;
 
-                foreach ($fetchedItems->first() as $index => $item) {
+                foreach ($fetchedItems->{$entity} as $index => $item) {
 
 
                     /** @var Model $model */
@@ -123,20 +125,20 @@ class Builder
                 return (object)[
 
                     'items' => $items,
-                    'pages' => $pages,
+                    'count' => $count,
                 ];
             });
         };
 
         do {
 
-            $resp = $response($filters, $page);
+            $resp = $response($filters, $offset, $entity);
 
             $items = $items->merge($resp->items);
-            $page++;
+            $offset += 100;
             sleep(2);
 
-        } while ($page <= $resp->pages);
+        } while ($resp->count > 0);
 
 
         return $items;
