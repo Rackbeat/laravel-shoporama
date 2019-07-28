@@ -27,7 +27,7 @@ class Builder
      */
     public function get($filters = [], $entity = null)
     {
-        $entity = $entity ?? str_plural($this->entity);
+        $entity = $entity ?? $this->entity;
         $filters[] = ['limit', '=', 100];
 
         $urlFilters = $this->parseFilters($filters);
@@ -91,7 +91,7 @@ class Builder
 
     public function all($filters = [], $entity = null)
     {
-        $entity = $entity ?? str_plural($this->entity);
+        $entity = $entity ?? $this->entity;
         $offset = 0;
 
         $items = collect();
