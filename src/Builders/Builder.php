@@ -148,9 +148,9 @@ class Builder
         return $this->request->handleWithExceptions(function () use ($id) {
 
             $response = $this->request->client->get("{$this->entity}/{$id}");
-            $responseData = collect(json_decode((string)$response->getBody()));
+            $responseData = json_decode((string)$response->getBody());
 
-            return new $this->model($this->request, $responseData->first());
+            return new $this->model($this->request, $responseData);
         });
     }
 
