@@ -58,7 +58,10 @@ class Shoporama
 
     public function update_stock($data)
     {
-        return json_decode((string)$this->request->client->post('stock', $data)->getBody());
+        return json_decode((string)$this->request->client->post('stock', [
+
+            'json' => $data,
+        ])->getBody());
     }
 
     /**
