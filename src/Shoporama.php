@@ -56,6 +56,11 @@ class Shoporama
         return new CategoryBuilder($this->request);
     }
 
+    public function update_stock($data)
+    {
+        return json_decode((string)$this->request->client->post('stock', $data)->getBody());
+    }
+
     /**
      * @return mixed
      */
