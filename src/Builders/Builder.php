@@ -162,9 +162,9 @@ class Builder
                 'json' => $data,
             ]);
 
-            $responseData = collect(json_decode((string)$response->getBody()));
+            $responseData = json_decode((string)$response->getBody());
 
-            return new $this->model($this->request, $responseData->first());
+            return new $this->model($this->request, $responseData);
         });
     }
 

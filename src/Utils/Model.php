@@ -77,9 +77,9 @@ class Model
                 'json' => $data,
             ]);
 
-            $responseData = collect(json_decode((string)$response->getBody()));
+            $responseData = json_decode((string)$response->getBody());
 
-            return new $this->modelClass($this->request, $responseData->first());
+            return new $this->modelClass($this->request, $responseData);
         });
     }
 
