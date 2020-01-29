@@ -33,6 +33,7 @@ class Request
             'Authorization' => 'Shoporama ' . $token,
             'User-Agent' => 'Rackbeat Shoporama Integration (Stefan Ninic)',
             'X-Access-Token' => $token,
+            'Connection' => 'close',
         ]);
         $options = array_merge($options, [
 
