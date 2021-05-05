@@ -1,13 +1,8 @@
 {
-  "name": "kg-bot/laravel-shoporama",
+  "name": "rackbeat/laravel-shoporama",
   "description": "Laravel Integration With Shoporama",
   "license": "MIT",
-  "authors": [
-    {
-      "name": "Stefan Ninic",
-      "email": "ninicstefan94@gmail.com"
-    }
-  ],
+  "authors": [],
   "require": {
 	  "php": ">=7.2",
 	  "laravel/framework": "^5.5|^6|^7|^8",
