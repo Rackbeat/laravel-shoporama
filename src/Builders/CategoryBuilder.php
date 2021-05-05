@@ -2,7 +2,6 @@
 
 namespace KgBot\Shoporama\Builders;
 
-
 use KgBot\Shoporama\Models\Category;
 
 class CategoryBuilder extends Builder

@@ -7,105 +7,94 @@ use Illuminate\Support\Str;
 use KgBot\Shoporama\Utils\Model;
 use KgBot\Shoporama\Utils\Request;
 
-
-class Builder
+abstract class Builder
 {
     protected $entity;
     /** @var Model */
     protected $model;
-    private $request;
+    protected $request;
 
     public function __construct(Request $request)
     {
         $this->request = $request;
     }
 
-
     /**
      * @param array $filters
      *
      * @return Collection|Model[]
+     * @throws \KgBot\Shoporama\Exceptions\ShoporamaClientException
+     * @throws \KgBot\Shoporama\Exceptions\ShoporamaRequestException
      */
-    public function get($filters = [], $entity = null)
+    public function get(array $filters = [])
     {
-        $entity = $entity ?? Str::plural($this->entity);
-        $filters[] = ['limit', '=', 100];
+        $entity = Str::plural($this->entity);
+        $filters['limit'] = 100;
 
         $urlFilters = $this->parseFilters($filters);
 
         return $this->request->handleWithExceptions(function () use ($urlFilters, $entity) {
-
             $response = $this->request->client->get("{$this->entity}{$urlFilters}");
             $responseData = json_decode((string)$response->getBody());
             $fetchedItems = collect($responseData->{$entity});
             $items = collect([]);
-            $count = (isset($responseData->paging)) ? $responseData->paging->count : 0;
 
             foreach ($fetchedItems as $index => $item) {
-
-
                 /** @var Model $model */
                 $model = new $this->model($this->request, $item);
-
                 $items->push($model);
-
-
             }
 
             return $items;
         });
     }
 
-    protected function parseFilters($filters = [])
+    /**
+     * @param array $filters
+     *
+     * @return string
+     */
+    protected function parseFilters(array $filters = []) : string
     {
-
-        if (array_search('limit', array_column($filters, 0)) !== (count($filters) - 1)) {
-
-            unset($filters[count($filters) - 1]);
+        if (empty($filters)) {
+            return '';
         }
 
-        $urlFilters = '';
-
-        if (count($filters) > 0) {
-
-            $filters = array_unique($filters, SORT_REGULAR);
-
-            $i = 1;
-
-            $urlFilters .= '?';
-
-            foreach ($filters as $filter) {
-
-                $urlFilters .= $filter[0] . $filter[1] . $filter[2] ?? '=';
-
-                if (count($filters) > $i) {
-
-                    $urlFilters .= '&';
-                }
-
-                $i++;
+        $args = [];
+        foreach ($filters as $filter => $value) {
+            if (is_array($value)) {
+                $args[] = $value[0] . $value[1] . $value[2];
+            } else {
+                $args[] = $filter . '=' .$value;
             }
         }
 
-        return $urlFilters;
+        return '?' . implode("&", $args);
     }
 
-    public function all($filters = [], $entity = null)
+    /**
+     * Fetch items from integration by chunks
+     * This will return generator to save memory for proper job handle
+     *
+     * @param array $filters
+     * @param int $chunkSize
+     *
+     * @return \Generator
+     * @throws \KgBot\Shoporama\Exceptions\ShoporamaClientException
+     * @throws \KgBot\Shoporama\Exceptions\ShoporamaRequestException
+     */
+    public function all(array $filters = [], int $chunkSize = 100)
     {
-        $entity = $entity ?? Str::plural($this->entity);
+        $entity = Str::plural($this->entity);
         $offset = 0;
 
-        $items = collect();
-
-        $response = function ($filters, $offset, $entity) {
-
-            $filters[] = ['limit', '=', 100];
-            $filters[] = ['offset', '=', $offset];
+        $response = function ($filters, $offset, $entity) use ($chunkSize) {
+            $filters['limit'] = $chunkSize;
+            $filters['offset'] = $offset;
 
             $urlFilters = $this->parseFilters($filters);
 
             return $this->request->handleWithExceptions(function () use ($urlFilters, $entity) {
-
                 $response = $this->request->client->get("{$this->entity}{$urlFilters}");
                 $responseData = json_decode((string)$response->getBody());
                 $fetchedItems = collect($responseData->{$entity});
@@ -113,16 +102,12 @@ class Builder
                 $count = (isset($responseData->paging)) ? $responseData->paging->count : 0;
 
                 foreach ($fetchedItems as $index => $item) {
-
                     /** @var Model $model */
                     $model = new $this->model($this->request, $item);
-
                     $items->push($model);
-
                 }
 
                 return (object)[
-
                     'items' => $items,
                     'count' => $count,
                 ];
@@ -130,18 +115,23 @@ class Builder
         };
 
         do {
-
             $resp = $response($filters, $offset, $entity);
 
-            $items = $items->merge($resp->items);
-            $offset += 100;
-            sleep(2);
+            $countResults = count($resp->items);
+            if ( $countResults === 0 ) {
+                break;
+            }
+            // make a generator of the results and return them
+            // so the logic will handle them before the next iteration
+            // in order to avoid memory leaks
+            foreach ($resp->items as $result ) {
+                yield $result;
+            }
 
-        } while ($resp->count > 0);
+            unset( $resp );
 
-
-        return $items;
-
+            $offset += $chunkSize;
+        } while ($countResults === $chunkSize);
     }
 
     public function find($id)
