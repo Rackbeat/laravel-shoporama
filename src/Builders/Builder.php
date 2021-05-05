@@ -7,12 +7,12 @@ use Illuminate\Support\Str;
 use KgBot\Shoporama\Utils\Model;
 use KgBot\Shoporama\Utils\Request;
 
-class Builder
+abstract class Builder
 {
     protected $entity;
     /** @var Model */
     protected $model;
-    private $request;
+    protected $request;
 
     public function __construct(Request $request)
     {

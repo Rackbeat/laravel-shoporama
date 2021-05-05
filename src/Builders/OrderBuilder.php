@@ -2,7 +2,6 @@
 
 namespace KgBot\Shoporama\Builders;
 
-
 use KgBot\Shoporama\Models\Order;
 
 class OrderBuilder extends Builder
