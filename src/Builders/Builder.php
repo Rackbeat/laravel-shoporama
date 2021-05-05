@@ -7,7 +7,6 @@ use Illuminate\Support\Str;
 use KgBot\Shoporama\Utils\Model;
 use KgBot\Shoporama\Utils\Request;
 
-
 class Builder
 {
     protected $entity;
@@ -24,8 +23,10 @@ class Builder
      * @param array $filters
      *
      * @return Collection|Model[]
+     * @throws \KgBot\Shoporama\Exceptions\ShoporamaClientException
+     * @throws \KgBot\Shoporama\Exceptions\ShoporamaRequestException
      */
-    public function get($filters = [])
+    public function get(array $filters = [])
     {
         $entity = Str::plural($this->entity);
         $filters['limit'] = 100;
@@ -37,12 +38,10 @@ class Builder
             $responseData = json_decode((string)$response->getBody());
             $fetchedItems = collect($responseData->{$entity});
             $items = collect([]);
-            $count = (isset($responseData->paging)) ? $responseData->paging->count : 0;
 
             foreach ($fetchedItems as $index => $item) {
                 /** @var Model $model */
                 $model = new $this->model($this->request, $item);
-
                 $items->push($model);
             }
 
@@ -50,6 +49,11 @@ class Builder
         });
     }
 
+    /**
+     * @param array $filters
+     *
+     * @return string
+     */
     protected function parseFilters(array $filters = []) : string
     {
         if (empty($filters)) {
@@ -58,7 +62,11 @@ class Builder
 
         $args = [];
         foreach ($filters as $filter => $value) {
-            $args[] = $filter . '=' .$value;
+            if (is_array($value)) {
+                $args[] = $value[0] . $value[1] . $value[2];
+            } else {
+                $args[] = $filter . '=' .$value;
+            }
         }
 
         return '?' . implode("&", $args);
@@ -67,10 +75,13 @@ class Builder
     /**
      * Fetch items from integration by chunks
      * This will return generator to save memory for proper job handle
-     * 
-     * @param  array       $filters  
-     * @param  int|integer $chunkSize
-     * @return 
+     *
+     * @param array $filters
+     * @param int $chunkSize
+     *
+     * @return \Generator
+     * @throws \KgBot\Shoporama\Exceptions\ShoporamaClientException
+     * @throws \KgBot\Shoporama\Exceptions\ShoporamaRequestException
      */
     public function all(array $filters = [], int $chunkSize = 100)
     {
@@ -93,7 +104,6 @@ class Builder
                 foreach ($fetchedItems as $index => $item) {
                     /** @var Model $model */
                     $model = new $this->model($this->request, $item);
-
                     $items->push($model);
                 }
 
