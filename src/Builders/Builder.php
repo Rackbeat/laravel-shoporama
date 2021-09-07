@@ -159,6 +159,26 @@ abstract class Builder
         });
     }
 
+    public function delete($id)
+    {
+        return $this->request->handleWithExceptions(function () use ($id) {
+            return $this->request->client->delete("{$this->entity}/{$id}");
+        });
+    }
+
+    public function update($id, $data = [])
+    {
+        return $this->request->handleWithExceptions(function () use ($id, $data) {
+            $response = $this->request->client->put("{$this->entity}/{$id}", [
+                'json' => $data,
+            ]);
+
+            $responseData = json_decode((string)$response->getBody());
+
+            return new $this->modelClass($this->request, $responseData);
+        });
+    }
+
     public function getEntity()
     {
         return $this->entity;

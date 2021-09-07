@@ -12,26 +12,16 @@ class Model
     protected $modelClass = self::class;
     protected $fillable = [];
 
-    /**
-     * @var Request
-     */
-    protected $request;
-
-    public function __construct(Request $request, $data = [])
+    public function __construct($data = [])
     {
-        $this->request = $request;
         $data = (array)$data;
 
         foreach ($data as $key => $value) {
-
             $customSetterMethod = 'set' . ucfirst(Str::camel($key)) . 'Attribute';
 
             if (!method_exists($this, $customSetterMethod)) {
-
                 $this->setAttribute($key, $value);
-
             } else {
-
                 $this->setAttribute($key, $this->{$customSetterMethod}($value));
             }
         }
@@ -60,29 +50,6 @@ class Model
         }
 
         return $data;
-    }
-
-    public function delete()
-    {
-        return $this->request->handleWithExceptions(function () {
-
-            return $this->request->client->delete("{$this->entity}/{$this->{$this->primaryKey}}");
-        });
-    }
-
-    public function update($data = [])
-    {
-
-        return $this->request->handleWithExceptions(function () use ($data) {
-
-            $response = $this->request->client->put("{$this->entity}/{$this->{$this->primaryKey}}", [
-                'json' => $data,
-            ]);
-
-            $responseData = json_decode((string)$response->getBody());
-
-            return new $this->modelClass($this->request, $responseData);
-        });
     }
 
     public function getEntity()
