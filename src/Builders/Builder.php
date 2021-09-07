@@ -41,7 +41,7 @@ abstract class Builder
 
             foreach ($fetchedItems as $index => $item) {
                 /** @var Model $model */
-                $model = new $this->model($this->request, $item);
+                $model = new $this->model($item);
                 $items->push($model);
             }
 
@@ -103,7 +103,7 @@ abstract class Builder
 
                 foreach ($fetchedItems as $index => $item) {
                     /** @var Model $model */
-                    $model = new $this->model($this->request, $item);
+                    $model = new $this->model($item);
                     $items->push($model);
                 }
 
@@ -141,7 +141,7 @@ abstract class Builder
             $response = $this->request->client->get("{$this->entity}/{$id}");
             $responseData = json_decode((string)$response->getBody());
 
-            return new $this->model($this->request, $responseData);
+            return new $this->model($responseData);
         });
     }
 
@@ -155,7 +155,7 @@ abstract class Builder
 
             $responseData = json_decode((string)$response->getBody());
 
-            return new $this->model($this->request, $responseData);
+            return new $this->model($responseData);
         });
     }
 
@@ -175,7 +175,7 @@ abstract class Builder
 
             $responseData = json_decode((string)$response->getBody());
 
-            return new $this->modelClass($this->request, $responseData);
+            return new $this->model($responseData);
         });
     }
 
