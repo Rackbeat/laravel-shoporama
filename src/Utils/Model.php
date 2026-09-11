@@ -5,6 +5,16 @@ namespace KgBot\Shoporama\Utils;
 use Illuminate\Support\Str;
 
 
+/*
+ * setAttribute() writes every API field as an undeclared property, which PHP 8.2
+ * deprecates. The attribute is the only fix that keeps the serialized shape
+ * byte-identical: integration-shoporama stores serialize(Models\Order) and
+ * serialize(Models\Product) in dashboard_jobs.payload and unserializes them
+ * months later, and toArray() enumerates public properties by reflection.
+ * Declaring properties instead would orphan every stored row and change
+ * toArray()'s output. On PHP 7 the line below is simply a # comment.
+ */
+#[\AllowDynamicProperties]
 class Model
 {
     protected $entity;
